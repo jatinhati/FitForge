@@ -1,6 +1,50 @@
-# FitForge 🏋️
+````markdown
+# FitForge
 
-FitForge is a full-stack **AI-powered fitness tracking platform** built with a microservices architecture. Users can log workouts, track calories, and receive personalised AI-generated recommendations powered by Google Gemini — all secured by Keycloak OAuth 2.0 / OIDC.
+<p align="center">
+  <!-- Simple inline SVG logo (no external assets required) -->
+  <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FitForge logo">
+    <defs>
+      <linearGradient id="ff_g" x1="20" y1="20" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#6D28D9"/>
+        <stop offset="1" stop-color="#22C55E"/>
+      </linearGradient>
+    </defs>
+    <rect x="10" y="10" width="100" height="100" rx="24" fill="url(#ff_g)"/>
+    <!-- Dumbbell -->
+    <rect x="34" y="54" width="52" height="12" rx="6" fill="white" opacity="0.95"/>
+    <rect x="24" y="48" width="12" height="24" rx="6" fill="white" opacity="0.95"/>
+    <rect x="84" y="48" width="12" height="24" rx="6" fill="white" opacity="0.95"/>
+    <!-- Spark/AI star -->
+    <path d="M62 28l3 8 8 3-8 3-3 8-3-8-8-3 8-3 3-8z" fill="white" opacity="0.95"/>
+  </svg>
+</p>
+
+<h1 align="center">FitForge</h1>
+<p align="center">
+  <b>AI-powered fitness tracking platform</b> built with <b>Spring Boot microservices</b> + <b>Kafka</b> + <b>Keycloak</b> + a <b>React</b> frontend.
+</p>
+
+<p align="center">
+  <a href="https://github.com/jatinhati/FitForge"><img alt="Repo" src="https://img.shields.io/badge/GitHub-jatinhati%2FFitForge-black"></a>
+  <img alt="Backend" src="https://img.shields.io/badge/Backend-Spring%20Boot%203.x-6DB33F">
+  <img alt="Gateway" src="https://img.shields.io/badge/Gateway-Spring%20Cloud%20Gateway-0EA5E9">
+  <img alt="Auth" src="https://img.shields.io/badge/Auth-Keycloak-1D4ED8">
+  <img alt="Messaging" src="https://img.shields.io/badge/Messaging-Apache%20Kafka-111827">
+  <img alt="Frontend" src="https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB">
+</p>
+
+---
+
+## What is FitForge?
+
+FitForge is a full-stack **AI-powered fitness tracking platform**.
+
+- Log workouts (type, duration, calories, and additional metrics)
+- Persist activity history
+- Stream activity events via **Kafka**
+- Generate **personalized AI recommendations** (tips, suggestions, safety notes) via the **Google Gemini API**
+- Secure everything with **Keycloak** (OIDC/OAuth 2.0) and JWT validation at the **API Gateway**
 
 ---
 
@@ -17,10 +61,12 @@ FitForge is a full-stack **AI-powered fitness tracking platform** built with a m
   - [Frontend](#frontend)
 - [Tech Stack](#tech-stack)
 - [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
+- [Quick Start (Docker)](#quick-start-docker)
+- [Getting Started (Step-by-step)](#getting-started-step-by-step)
   - [1. Infrastructure (Keycloak, Kafka, Databases)](#1-infrastructure-keycloak-kafka-databases)
   - [2. Backend Microservices](#2-backend-microservices)
   - [3. Frontend](#3-frontend)
+- [Environment Variables](#environment-variables)
 - [Configuration Reference](#configuration-reference)
 - [API Reference](#api-reference)
 - [Project Structure](#project-structure)
@@ -30,39 +76,43 @@ FitForge is a full-stack **AI-powered fitness tracking platform** built with a m
 
 ## Architecture Overview
 
+```text
+┌──────────────────────────────────────────────────────────────────────────┐
+│                                 Browser                                  │
+│                   React + Vite + MUI Frontend (:5173)                    │
+└───────────────────────────────┬──────────────────────────────────────────┘
+                                │  HTTP (Bearer JWT)
+                                ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│                 API Gateway (Spring Cloud Gateway) :8080                 │
+│        OAuth2 Resource Server (validates JWT via Keycloak JWKs)          │
+└──────────────┬──────────────────────┬───────────────────────┬────────────┘
+               │ /api/users/**        │ /api/activities/**    │ /api/recommendations/**
+               ▼                      ▼                       ▼
+      ┌─────────────────┐   ┌───────────────────┐    ┌───────────────────┐
+      │   User Service   │   │  Activity Service  │    │     AI Service     │
+      │      :8081       │   │       :8082        │    │       :8083        │
+      │   PostgreSQL     │   │      MongoDB       │    │      MongoDB       │
+      └─────────────────┘   └──────────┬─────────┘    └─────────┬─────────┘
+                                       │  Kafka (activity-events)          │ Google Gemini API
+                                       └───────────────────────────────────┘
+
+            ┌──────────────────────┐         ┌──────────────────────┐
+            │  Eureka Server :8761 │         │ Config Server :8888  │
+            └──────────────────────┘         └──────────────────────┘
+
+            ┌──────────────────────┐
+            │  Keycloak :8181      │
+            │  realm: fitness-app  │
+            └──────────────────────┘
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Browser                                  │
-│              React + Vite + MUI Frontend (:5173)                 │
-└───────────────────────────┬─────────────────────────────────────┘
-                            │  HTTP (Bearer JWT)
-                            ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              API Gateway (Spring Cloud Gateway) :8080            │
-│         OAuth2 Resource Server (validates JWT via Keycloak)      │
-└────────┬─────────────────┬──────────────────┬───────────────────┘
-         │ /api/users/**   │ /api/activities/**│ /api/recommendations/**
-         ▼                 ▼                  ▼
-  ┌────────────┐  ┌──────────────────┐  ┌──────────────────┐
-  │ User Svc   │  │  Activity Svc    │  │    AI Svc        │
-  │  :8081     │  │     :8082        │  │    :8083         │
-  │ PostgreSQL │  │    MongoDB       │  │   MongoDB        │
-  └────────────┘  └────────┬─────────┘  └───────┬──────────┘
-                           │  Kafka              │
-                           │  (activity-events)  │ Google Gemini API
-                           └─────────────────────┘
 
-      ┌──────────────────────┐   ┌──────────────────────┐
-      │  Eureka Server :8761 │   │ Config Server :8888  │
-      └──────────────────────┘   └──────────────────────┘
+**How requests flow:**
 
-      ┌──────────────────────┐
-      │  Keycloak :8181      │
-      │  realm: fitness-app  │
-      └──────────────────────┘
-```
-
-All backend services register with Eureka and pull their configuration from the Config Server. The API Gateway performs JWT validation and routes requests by path prefix. Activity events are published to Apache Kafka and consumed by the AI Service to generate Gemini-powered recommendations.
+1. The **Frontend** authenticates with **Keycloak** using **OAuth 2.0 PKCE**.
+2. The **API Gateway** validates JWTs (via Keycloak JWKs) and routes traffic by path prefix.
+3. The **Activity Service** publishes events to **Kafka** (`activity-events`).
+4. The **AI Service** consumes those events, calls **Google Gemini**, and stores generated recommendations.
 
 ---
 
@@ -75,7 +125,9 @@ All backend services register with Eureka and pull their configuration from the 
 | Port | `8888` |
 | Module | `configserver/` |
 
-Centralised configuration server (Spring Cloud Config, native profile). Stores per-service YAML files under `configserver/src/main/resources/config/`.
+Centralized configuration server (Spring Cloud Config, native profile). Stores per-service YAML under:
+
+- `configserver/src/main/resources/config/`
 
 ### Eureka – Service Discovery
 
@@ -85,7 +137,7 @@ Centralised configuration server (Spring Cloud Config, native profile). Stores p
 | Module | `eureka/` |
 | Dashboard | `http://localhost:8761` |
 
-Netflix Eureka server. All backend microservices register here; the gateway uses Eureka to resolve load-balanced URIs (`lb://SERVICE-NAME`).
+Netflix Eureka server. All backend services register here; the gateway uses Eureka to resolve `lb://SERVICE-NAME` URIs.
 
 ### API Gateway
 
@@ -94,9 +146,10 @@ Netflix Eureka server. All backend microservices register here; the gateway uses
 | Port | `8080` |
 | Module | `gateway/` |
 
-Spring Cloud Gateway (reactive, WebFlux) that:
-- Validates JWT tokens issued by Keycloak via the JWK Set endpoint.
-- Routes requests to downstream services via Eureka load-balancing.
+Spring Cloud Gateway (reactive / WebFlux):
+
+- Validates JWT tokens issued by Keycloak (JWK Set endpoint)
+- Routes requests to downstream services via Eureka load-balancing
 
 **Route table:**
 
@@ -137,7 +190,9 @@ Manages user profiles stored in PostgreSQL via Spring Data JPA.
 
 Records fitness activities in MongoDB, validates the user via the User Service (WebClient), and publishes activity events to Kafka so the AI Service can generate recommendations.
 
-**Supported activity types:** `RUNNING`, `WALKING`, `CYCLING`, `SWIMMING`, `WEIGHT_TRAINING`, `YOGA`, `HIIT`, `CARDIO`, `STRETCHING`, `OTHER`
+**Supported activity types:**
+
+`RUNNING`, `WALKING`, `CYCLING`, `SWIMMING`, `WEIGHT_TRAINING`, `YOGA`, `HIIT`, `CARDIO`, `STRETCHING`, `OTHER`
 
 **Endpoints:**
 
@@ -147,6 +202,7 @@ Records fitness activities in MongoDB, validates the user via the User Service (
 | `GET` | `/api/activities` | `X-User-ID`, `Authorization` | List user's activities |
 
 **Activity payload example:**
+
 ```json
 {
   "type": "RUNNING",
@@ -170,7 +226,7 @@ Records fitness activities in MongoDB, validates the user via the User Service (
 | Kafka topic | `activity-events` (consumer, group: `activity-processor-group`) |
 | AI Provider | Google Gemini API |
 
-Listens on the `activity-events` Kafka topic and calls the Google Gemini API to generate personalised recommendations including improvement tips, workout suggestions, and safety notes. Results are persisted in MongoDB.
+Consumes `activity-events` and calls Gemini to generate personalized recommendations: overall analysis + improvements + suggestions + safety notes.
 
 **Endpoints:**
 
@@ -180,6 +236,7 @@ Listens on the `activity-events` Kafka topic and calls the Google Gemini API to 
 | `GET` | `/api/recommendations/activity/{activityId}` | Recommendation for a specific activity |
 
 **Recommendation structure:**
+
 ```json
 {
   "id": "...",
@@ -202,22 +259,22 @@ Listens on the `activity-events` Kafka topic and calls the Google Gemini API to 
 | Module | `FitForge-frontend/` |
 | Framework | React 19 + Vite 7 |
 
-React SPA that authenticates with Keycloak via the **OAuth 2.0 PKCE** flow (`react-oauth2-code-pkce`). State is managed with Redux Toolkit. UI components use Material UI (MUI v7). Routing is handled by React Router v7.
+React SPA that authenticates with Keycloak via **OAuth 2.0 PKCE** (`react-oauth2-code-pkce`). Uses Redux Toolkit for state and Material UI (MUI v7).
 
-**Key pages / routes:**
+**Key routes:**
 
-| Route | Component | Description |
-|-------|-----------|-------------|
-| `/` | Redirects | Redirects to `/activities` when logged in |
-| `/activities` | `ActivityForm` + `ActivityList` | Log and view activities |
-| `/activities/:id` | `ActivityDetail` | View AI recommendation for an activity |
+| Route | Description |
+|------|-------------|
+| `/` | Redirects to `/activities` when logged in |
+| `/activities` | Log and list activities |
+| `/activities/:id` | View AI recommendation for an activity |
 
 ---
 
 ## Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
+|-------|------------|
 | Frontend | React 19, Vite 7, MUI 7, Redux Toolkit, Axios, React Router 7 |
 | API Gateway | Spring Cloud Gateway (WebFlux), Spring Boot 3.5, Spring Security OAuth2 |
 | User Service | Spring Boot 3.5, Spring Data JPA, PostgreSQL, Lombok |
@@ -234,10 +291,10 @@ React SPA that authenticates with Keycloak via the **OAuth 2.0 PKCE** flow (`rea
 
 ## Prerequisites
 
-- **Java 24+** (services use `java.version=24`; userservice uses 25)
-- **Maven 3.9+** (or use the included `mvnw` wrappers)
-- **Node.js 20+** and **npm**
-- **Docker** (recommended for running infrastructure)
+- **Java 24+** (services use `java.version=24`; `userservice` uses 25)
+- **Maven 3.9+** (or use `mvnw` wrappers)
+- **Node.js 20+** + **npm**
+- **Docker** (recommended for local infrastructure)
 - **Keycloak** instance
 - **Apache Kafka** + Zookeeper
 - **PostgreSQL 15+**
@@ -246,11 +303,9 @@ React SPA that authenticates with Keycloak via the **OAuth 2.0 PKCE** flow (`rea
 
 ---
 
-## Getting Started
+## Quick Start (Docker)
 
-### 1. Infrastructure (Keycloak, Kafka, Databases)
-
-Start the required infrastructure. Using Docker is the easiest approach:
+If you just want to run the dependencies quickly, start infra with Docker:
 
 ```bash
 # PostgreSQL
@@ -280,11 +335,19 @@ docker run -d --name keycloak \
   quay.io/keycloak/keycloak:latest start-dev
 ```
 
+---
+
+## Getting Started (Step-by-step)
+
+### 1. Infrastructure (Keycloak, Kafka, Databases)
+
+Follow the **Quick Start** commands above.
+
 #### Keycloak Setup
 
 1. Open `http://localhost:8181` and sign in with `admin / admin`.
 2. Create a realm named **`fitness-app`**.
-3. Inside the realm, create a client:
+3. Create a client:
    - **Client ID:** `oauth2-pkce-client`
    - **Client authentication:** OFF (public client)
    - **Standard flow / Direct access grants:** enabled
@@ -294,39 +357,44 @@ docker run -d --name keycloak \
 
 ### 2. Backend Microservices
 
-Start the services **in this order** (each subsequent service depends on the previous):
+Start services **in this order**:
 
 #### Config Server
+
 ```bash
 cd configserver
 ./mvnw spring-boot:run
-# Listening on http://localhost:8888
+# http://localhost:8888
 ```
 
 #### Eureka Server
+
 ```bash
 cd eureka
 ./mvnw spring-boot:run
-# Dashboard: http://localhost:8761
+# http://localhost:8761
 ```
 
 #### User Service
+
 ```bash
 cd userservice
 ./mvnw spring-boot:run
-# Listening on http://localhost:8081
+# http://localhost:8081
 ```
 
 #### Activity Service
+
 ```bash
 cd activityservice
 ./mvnw spring-boot:run
-# Listening on http://localhost:8082
+# http://localhost:8082
 ```
 
 #### AI Service
 
-Export your Gemini credentials first:
+Export Gemini credentials first:
+
 ```bash
 export GEMINI_URL=https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent
 export GEMINI_KEY=<your-google-gemini-api-key>
@@ -335,14 +403,15 @@ export GEMINI_KEY=<your-google-gemini-api-key>
 ```bash
 cd aiservice
 ./mvnw spring-boot:run
-# Listening on http://localhost:8083
+# http://localhost:8083
 ```
 
 #### API Gateway
+
 ```bash
 cd gateway
 ./mvnw spring-boot:run
-# Listening on http://localhost:8080
+# http://localhost:8080
 ```
 
 ### 3. Frontend
@@ -351,10 +420,19 @@ cd gateway
 cd FitForge-frontend
 npm install
 npm run dev
-# Open http://localhost:5173
+# http://localhost:5173
 ```
 
-Click **LOGIN** to authenticate via Keycloak. Once logged in you are redirected to `/activities` where you can log workouts and view AI-generated recommendations.
+Click **LOGIN** to authenticate via Keycloak. After login, you will land on `/activities`.
+
+---
+
+## Environment Variables
+
+| Variable | Used by | Description |
+|----------|---------|-------------|
+| `GEMINI_URL` | AI Service | Google Gemini API endpoint URL |
+| `GEMINI_KEY` | AI Service | Google Gemini API key |
 
 ---
 
@@ -365,34 +443,28 @@ All per-service configuration lives in `configserver/src/main/resources/config/`
 | File | Service | Key settings |
 |------|---------|-------------|
 | `user-service.yml` | User Service | PostgreSQL URL/credentials, Hibernate DDL, Eureka URL, port `8081` |
-| `activity-service.yml` | Activity Service | MongoDB URI (`aiactivityfitness`), Kafka bootstrap servers, Kafka topic `activity-events`, port `8082` |
+| `activity-service.yml` | Activity Service | MongoDB URI (`aiactivityfitness`), Kafka bootstrap servers, topic `activity-events`, port `8082` |
 | `ai-service.yml` | AI Service | MongoDB URI (`airecommendationfitness`), Kafka consumer settings, `${GEMINI_URL}`, `${GEMINI_KEY}`, port `8083` |
 | `gateway-service.yml` | API Gateway | Eureka URL, Keycloak JWK-set URI, route predicates, port `8080` |
 
-> **Security note:** The default `user-service.yml` contains a plain-text database password (`admin@123`). Replace it with a strong password and consider using environment variable substitution (`${DB_PASSWORD}`) before deploying to any non-local environment.
-
-### Environment Variables
-
-| Variable | Used by | Description |
-|----------|---------|-------------|
-| `GEMINI_URL` | AI Service | Google Gemini API endpoint URL |
-| `GEMINI_KEY` | AI Service | Google Gemini API key |
+> **Security note:** Avoid committing real secrets. Prefer environment variables (`${VAR}`) or secret managers.
 
 ---
 
 ## API Reference
 
-All endpoints are accessed through the gateway at `http://localhost:8080`. Every request must include an `Authorization: Bearer <JWT>` header (obtained from Keycloak). The gateway extracts the user ID from the JWT and forwards it as the `X-User-ID` header to downstream services.
+All endpoints are accessed through the gateway at `http://localhost:8080`.
 
 ### User Service
 
-```
+```text
 POST   /api/users/register
 GET    /api/users/{userId}
 GET    /api/users/{userId}/validate
 ```
 
 **Register request body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -404,14 +476,14 @@ GET    /api/users/{userId}/validate
 
 ### Activity Service
 
-```
+```text
 POST   /api/activities          (X-User-ID required)
 GET    /api/activities          (X-User-ID required)
 ```
 
 ### AI / Recommendations Service
 
-```
+```text
 GET    /api/recommendations/user/{userId}
 GET    /api/recommendations/activity/{activityId}
 ```
@@ -420,7 +492,7 @@ GET    /api/recommendations/activity/{activityId}
 
 ## Project Structure
 
-```
+```text
 FitForge/
 ├── configserver/               # Spring Cloud Config Server
 │   └── src/main/resources/
@@ -450,12 +522,16 @@ FitForge/
 
 1. Fork the repository and create a feature branch.
 2. Follow the existing code style (Lombok for Java, functional components for React).
-3. Run each service's tests before submitting a pull request:
-   ```bash
-   # Java service
-   ./mvnw test
+3. Run tests before submitting a PR:
 
-   # Frontend
-   npm run lint
-   ```
+```bash
+# Java services
+./mvnw test
+
+# Frontend
+npm run lint
+```
+
 4. Open a pull request with a clear description of the changes.
+
+````
