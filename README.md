@@ -1,4 +1,3 @@
-````markdown
 # FitForge
 
 <p align="center">
@@ -533,5 +532,3 @@ npm run lint
 ```
 
 4. Open a pull request with a clear description of the changes.
-
-````
