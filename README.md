@@ -32,6 +32,9 @@
   <img alt="Messaging" src="https://img.shields.io/badge/Messaging-Apache%20Kafka-111827">
   <img alt="Frontend" src="https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB">
 </p>
+<img width="1920" height="1080" alt="Screenshot (104)" src="https://github.com/user-attachments/assets/c8379194-6f61-465f-9316-72570ca16dd2" />
+<img width="1920" height="1080" alt="Screenshot (107)" src="https://github.com/user-attachments/assets/7d1bf350-11bd-42c9-986d-3cca8743682c" />
+<img width="1920" height="1080" alt="Screenshot (106)" src="https://github.com/user-attachments/assets/fcf9603d-2874-49dd-a495-ff553b7019ff" />
 
 ---
 
