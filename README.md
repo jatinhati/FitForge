@@ -2,7 +2,6 @@
 
 <p align="center">
   <!-- Simple inline SVG logo (no external assets required) -->
-  <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FitForge logo">
     <defs>
       <linearGradient id="ff_g" x1="20" y1="20" x2="100" y2="100" gradientUnits="userSpaceOnUse">
         <stop stop-color="#6D28D9"/>
@@ -19,13 +18,12 @@
   </svg>
 </p>
 
-<h1 align="center">FitForge</h1>
+
 <p align="center">
   <b>AI-powered fitness tracking platform</b> built with <b>Spring Boot microservices</b> + <b>Kafka</b> + <b>Keycloak</b> + a <b>React</b> frontend.
 </p>
 
 <p align="center">
-  <a href="https://github.com/jatinhati/FitForge"><img alt="Repo" src="https://img.shields.io/badge/GitHub-jatinhati%2FFitForge-black"></a>
   <img alt="Backend" src="https://img.shields.io/badge/Backend-Spring%20Boot%203.x-6DB33F">
   <img alt="Gateway" src="https://img.shields.io/badge/Gateway-Spring%20Cloud%20Gateway-0EA5E9">
   <img alt="Auth" src="https://img.shields.io/badge/Auth-Keycloak-1D4ED8">
