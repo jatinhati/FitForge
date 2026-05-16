@@ -34,6 +34,31 @@
 <img width="1920" height="1080" alt="Screenshot (107)" src="https://github.com/user-attachments/assets/7d1bf350-11bd-42c9-986d-3cca8743682c" />
 <img width="1920" height="1080" alt="Screenshot (106)" src="https://github.com/user-attachments/assets/fcf9603d-2874-49dd-a495-ff553b7019ff" />
 
+## System Architecture Diagram
+
+```mermaid
+flowchart LR
+  Browser[Browser<br/>React + Vite] -->|OAuth2 PKCE| Keycloak[Keycloak]
+  Browser -->|Bearer JWT| Gateway[API Gateway]
+  Gateway --> UserService[User Service<br/>PostgreSQL]
+  Gateway --> ActivityService[Activity Service<br/>MongoDB]
+  Gateway --> AIService[AI Service<br/>MongoDB]
+  ActivityService -->|activity-events| Kafka[(Kafka)]
+  Kafka --> AIService
+  AIService -->|Gemini API| Gemini[Google Gemini API]
+  Gateway -.->|JWKs| Keycloak
+
+  Config[Config Server] -.-> UserService
+  Config -.-> ActivityService
+  Config -.-> AIService
+  Config -.-> Gateway
+
+  Eureka[Eureka Server] -.-> UserService
+  Eureka -.-> ActivityService
+  Eureka -.-> AIService
+  Eureka -.-> Gateway
+```
+
 ---
 
 ## What is FitForge?
